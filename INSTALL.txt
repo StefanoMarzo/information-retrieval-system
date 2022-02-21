@@ -1,0 +1,4 @@
+pip install numpy
+pip install -U pip setuptools wheel
+pip install -U spacy
+python -m spacy download en-core-web-sm
