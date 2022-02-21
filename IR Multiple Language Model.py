@@ -1,13 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# <h2>Indexing the document collection</h2>
-
-# <h3>Settings & utilities</h3>
-
-# In[1]:
-
-
 #imports
 import xml.etree.ElementTree as ET
 import os
@@ -17,14 +7,8 @@ import spacy #lemmatization
 import pickle #serialize object read/write files
 import time
 
-
-# <h3>Load document collection</h3>
-
-# In[2]:
-
-
 #path to the document collection
-collection_path = 'C:/Users/Stefano Marzo/Documents/DCU Master Dublin/05 Second semester modules/CA6005 Mechanics of search/01 Assignment/COLLECTION'
+collection_path = '/COLLECTION'
 
 def getDocumentList(path):
     return os.listdir(path)
@@ -32,22 +16,10 @@ def getDocumentList(path):
 #generate document name list
 doc_list = getDocumentList(collection_path)
 
-
-# <h3>Load queries</h3>
-
-# In[3]:
-
-
-queries_path = 'C:/Users/Stefano Marzo/Documents/DCU Master Dublin/05 Second semester modules/CA6005 Mechanics of search/01 Assignment/topics'
+queries_path = '/topics'
 
 #generate query name list
 queries_list = getDocumentList(queries_path)
-
-
-# <h3>Utilities</h3>
-
-# In[4]:
-
 
 def divideList(list_in, percentage, seed):
     if percentage < 0 or percentage > 1:
@@ -60,14 +32,6 @@ def divideList(list_in, percentage, seed):
     i = round(len(list_in) * percentage)
     return list_in[0:i]
 
-
-# <h2>Processing text</h2>
-
-# <h3>Load stopwords</h2>
-
-# In[5]:
-
-
 #Load a stopword list NLTK
 gist_file = open("stopwords.txt", "r")
 try:
@@ -76,12 +40,6 @@ try:
 finally:
     gist_file.close()
 
-
-# <h3>Text Processing Function</h3>
-
-# In[6]:
-
-
 #Process text to meet the IR requirements
 use_lemmatization = True
 
@@ -89,12 +47,11 @@ use_lemmatization = True
 # https://www.analyticsvidhya.com/blog/2019/08
 #/how-to-remove-stopwords-text-normalization-nltk-spacy-gensim-python
 #/?utm_source=blog&utm_medium=information-retrieval-using-word2vec-based-vector-space-model
-nlp = spacy.load('en_core_web_sm',disable=['ner','parser'])
+nlp = spacy.load('en_core_web_sm', disable=['ner', 'parser'])
 nlp.max_length=5000000
 
 def lemmatize(x):
     return ' '.join([token.lemma_ for token in list(nlp(x)) if (token.is_stop==False)])
-    
     
 #Returns a list of relevant terms
 def processText(text):
@@ -112,12 +69,6 @@ def processText(text):
     if use_lemmatization:
         text = lemmatize(text)
     return list(filter(lambda el: el not in stopwords, text.split()))
-
-
-# <h2>Class for XML documents</h2>
-
-# In[7]:
-
 
 class XmlFile:
     def __init__(self, xml, xml_id, field_dict, processText):
@@ -149,10 +100,6 @@ class XmlFile:
     def getWeightedTf(self, term, weight_list):
         return 0
 
-
-# In[8]:
-
-
 #relevant document tags 
 xml_doc_id = 'DOCID'
 xml_doc_fields = {'HEADLINE' : 'processed_head', 
@@ -175,12 +122,6 @@ class XmlDoc(XmlFile):
         except:
             tf_head = 0
         return tf_body + tf_head
-
-
-# <h2>Document Collection</h2>
-
-# In[9]:
-
 
 class DocumentCollection:
     def __init__(self, path, doc_list, 
@@ -298,11 +239,6 @@ class DocumentCollection:
             return 0
 
 
-# <h2>Classes for handle XML queries</h2>
-
-# In[10]:
-
-
 #relevant query tags 
 xml_query_id = 'QUERYID'
 xml_query_fields = {'TITLE' : 'processed_text'}
@@ -311,11 +247,6 @@ class XmlQuery(XmlFile):
     def __init__(self, xml):
         super().__init__(xml, xml_query_id, xml_query_fields, processText)
         #self.tf_index = self.__getTF__(self.processed_text)
-
-
-# <h2>Query collection</h2>
-
-# In[11]:
 
 
 class QueryCollection:
@@ -327,11 +258,7 @@ class QueryCollection:
             self.queries[xml_query.id] = xml_query
 
 
-# <h2>Create Document Collection and Query Collection objects</h2>
-
-# In[12]:
-
-
+#Create Document Collection and Query Collection objects
 recompute_all = False
 #seed for random number
 seed = 1
@@ -379,9 +306,6 @@ else:
     print('Query Collection Loaded in ' + str(round(end - start, 4)) + 's')
 
 
-# In[13]:
-
-
 class RankResult:
     def __init__(self, q_id, d_id, relevance):
         self.q_id = q_id
@@ -424,11 +348,7 @@ class RankingModel:
         return 0
 
 
-# <h2>Vector space model VSM</h2>
-
-# In[14]:
-
-
+#Vector space model VSM
 class VectorSpaceModel(RankingModel):
     def __init__(self, document_collection, query_collection, 
                  run_id='VSM', track_id='-'
@@ -469,23 +389,11 @@ class VectorSpaceModel(RankingModel):
         return similarity_function(v_doc, v_query)
 
 
-# <h2>Generate the VSM report for trec_eval</h2>
-
-# In[15]:
-
-
 vsm = VectorSpaceModel(document_collection, query_collection)
 vsm.getReport(out_folder = 'VSM/', limit_result = 1000, model_name='VSM')
 
 
-# <h2>BM25 ranking</h2>
-# <p>For a query $Q$ and a term $t \in Q$, the <b>BM25</b> score for a document $D$ is: </p>
-# <h1>$Relevance(D,t) = IDF(t) \cdot \frac{count(D, t) \cdot (k + 1)}{count(D, t) + k \cdot (1 - b + \frac{b|D|}{avgdl})} $</h1>
-# <p>Where $count(D, t)$ is the number of occurrencies of $t$ in $D$</p>
-
-# In[16]:
-
-
+#BM25 ranking
 class BM25(VectorSpaceModel):
     def __init__(self, 
                  document_collection, 
@@ -510,31 +418,11 @@ class BM25(VectorSpaceModel):
         normalizer = 1 - self.b + (self.b * doc_len / self.document_collection.avgdl)
         return (self.k + 1) * x / (x + self.k * normalizer) * idf_term
 
-
-# <h2>Generate the BM25 report for trec_eval</h2>
-
-# In[17]:
-
-
 bm25 = BM25(document_collection, query_collection)
 bm25.getReport(out_folder = 'BM25/', limit_result = 1000, model_name='BM25')
 
 
-# <h2>BM25F</h2>
-# <p>Attributing different relevance with respect to the document field</p>
-# <h2>$BM25F = \sum_{i=1}^{n}IDF(q_i) \cdot \frac{tf(D, q_i) \cdot (k + 1)}{tf(D, q_i) + k \cdot (1 - b - \frac{b|D|}{avgdl})}$</h2>
-# <p>Where</p>
-# <h2>$tf(D, q_i) = \sum_{c \in D} w_c \cdot tf_c(D, q_i)$</h2>
-# <p>and</p>
-# <ul>
-#     <li>$c$ is a document field</li>
-#     <li>$w_c$ is the weight attributed to field c</li>
-#     <li>$tf_c(D, q_i)$ is the term frequency for the field $c$ </li>
-# </ul>
-
-# In[18]:
-
-
+# BM25F
 class BM25F(VectorSpaceModel):
     def __init__(self, document_collection, query_collection, k=1.2, b=.75, track_id='-', run_id='BM25F',
                 w_head=3, w_body=1):
@@ -558,42 +446,11 @@ class BM25F(VectorSpaceModel):
         return (self.k + 1) * x / (x + self.k * normalizer) * idf_term
     
 
-
-# <h2>Generate the BM25F report for trec_eval</h2>
-
-# In[19]:
-
-
 bm25f = BM25F(document_collection, query_collection, w_head=3, w_body=1)
 bm25f.getReport(out_folder = 'BM25F/', limit_result = 1000, model_name='BM25F')
 
 
-# <h2>Unigram Language Model</h2>
-# <p>A unigram language model does not consider the context and estimates each term independently. 
-#     As a result:
-#     $P_{uni}(t_1 t_2 t_3 t_4) = P(t_1)P(t_2)P(t_3)P(t_4)$
-# </p>
-# 
-# <p>It is possible to consider a document $d$ as a generative model $M_d$ s.t. $\sum_{t}P(t|M_d) = 1$</p>
-# <p>Given a query $q$ we rank documents exploiting the likelihood of the document model to generate $q: P(q|M_d)$.</p>
-# <p><b>Maximum likelihood estimate (MLE)</b> for a query $q = [t_1, \dots, t_n]$ and a generative model $M_d$, $P(t_1, \dots, t_n | M_d) = tf(d, t_1) \times \dots \times tf(d, t_n)$</p>
-# <p><b>Zero Probability Problem: </b>if a term $t_h \in q$ is s.t. $tf(d, t_h) = 0$ hence $P(q|M_d) = 0$</p>
-# <p>To overcome this problem, only query term that are present in the document will be attributed a probability, the probability of the total seen terms is normalized to $1$</p>
-# <p><b>Over Estimation Problem: </b> since with MLE only terms belonging to $q \cap d$ are estimated, if there is only one common term between document and query, i.e. $|q \cap d| = 1$, the relevance would be $1$</p>
-# <p>To overcome this second problem, it is common to attribute a mass weight to other terms in the document i.e. <b>smoothing</b>.</p>
-# <p><b>Linear smoothing: </b> given a document model $M_d$ and a collection model $M_c$:</p>
-# <h2>$P(t|M_d) = \lambda \frac{tf(d, t)}{|d|} + (1 - \lambda) P(t|M_c)$</h2>
-# <p>where $\lambda$ is a parameter s.t. $\lambda \in (0, 1)$ and $P(t|M_c)$ is the term frequency of $t$ in the entire collection of documents</p>
-# <p>Note: for high values of $\lambda$ the search is more <i>conjunctive</i> i.e. favour documents containing all query terms, for low values of $\lambda$ the search is more <i>disjunctive</i> i.e. more suitable for long queries. Tuning this parameter is collection-specific.</p>
-# <p><b>Dirichlet Smoothing: </b>more effective in IR, sets <font size="+2">$\lambda = \frac{|d|}{\alpha + |d|}$</font> where $\alpha$ is the background mass i.e. the number of terms not in $q \cap d$</p>
-# <p>Finally: </p>
-# <h2>$P(q|d) = \prod_{t \in q} (\lambda \frac{tf(d,t)}{|d|} + (1-\lambda) \frac{tf(c, t)}{|c|}) = $</h2>
-# <h2>$\prod_{t \in q} (\frac{|d|}{\alpha + |d|} \frac{tf(d,t)}{|d|} + \frac{\alpha}{\alpha + |d|} \frac{tf(c, t)}{|c|}) = \prod_{t \in q} ( \frac{tf(d,t)}{\alpha + |d|} + \frac{\alpha}{\alpha + |d|} \frac{tf(c, t)}{|c|})$</h2>
-# <p>Using logs to avoid underflow in computation since $log(xy) = log(x) + log(y)$: </p>
-# <h2>$log(P(q|d)) = \sum_{t \in q} log( \frac{tf(d,t)}{\alpha + |d|} + \frac{\alpha}{\alpha + |d|} \frac{tf(c, t)}{|c|})$</h2>
-# <p><b>Problem: </b>if a term $t$ is not present in the entire document collection, ranking of documents would be $- \infty$, if <font size="+1">$(\frac{tf(d,t)}{\alpha + |d|} + \frac{\alpha}{\alpha + |d|} \frac{tf(c, t)}{|c|}) = 0$</font> for a term $t$ that term will not be considered</p>
-
-# In[20]:
+# Unigram Language Model
 
 
 class UnigramLanguageModel(RankingModel):
@@ -614,11 +471,5 @@ class UnigramLanguageModel(RankingModel):
         return relevance
 
 
-# <h2>Generate the ULM report for trec_eval</h2>
-
-# In[21]:
-
-
 ulm = UnigramLanguageModel(document_collection, query_collection)
 ulm.getReport(out_folder = 'ULM/', limit_result = 1000, model_name='ULM')
-
