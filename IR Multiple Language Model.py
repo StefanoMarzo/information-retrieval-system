@@ -134,7 +134,7 @@ class DocumentCollection:
         self.idf_filename = model_structure_file_path+'document_collection.idf'
         self.avgdl_filename = model_structure_file_path+'document_collection.avgdl'
         self.path = path
-        self.division_factor = 4
+        self.division_factor = 10
         #Inverted index 
             
     def loadFromFile(self):
@@ -293,17 +293,10 @@ compute_query_collection = True or recompute_all
 query_collection_filename = 'model_structures/query-collection.dictionary'
 
 #create a Query collection object
-if compute_query_collection or not os.path.isfile(query_collection_filename):
-    start = time.time()
-    query_collection = QueryCollection(queries_path, queries_list, query_collection_filename)
-    end = time.time()
-    print('Query Collection Computed in ' + str(round(end - start, 4)) + 's')
-else:
-    start = time.time()
-    with open(query_collection_filename, 'rb') as dictionary_file:
-        query_collection = pickle.load(dictionary_file) 
-    end = time.time()
-    print('Query Collection Loaded in ' + str(round(end - start, 4)) + 's')
+start = time.time()
+query_collection = QueryCollection(queries_path, queries_list, query_collection_filename)
+end = time.time()
+print('Query Collection Computed in ' + str(round(end - start, 4)) + 's')
 
 
 class RankResult:
