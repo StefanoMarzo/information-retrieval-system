@@ -1,4 +1,24 @@
+# Installation ######################################
+# PIP is needed #####################################
+# Create an empty virtual environment ###############
+# Activate the virtual environment ##################
+# Move into the project path ########################
+# run the following command #########################
+
+pip3 install -r requirements.txt --upgrade
+
+#####################################################
+# Run the programme #################################
+
+python "IR Multiple Language Model.py" 
+
+#####################################################
+# In case of errors #################################
+# run the following #################################
+
 pip install numpy
 pip install -U pip setuptools wheel
 pip install -U spacy
 python -m spacy download en-core-web-sm
+
+# Thanks ############################################
