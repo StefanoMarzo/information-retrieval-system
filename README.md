@@ -1,11 +1,11 @@
 # InformationRetrievalSystem
 
 ## Installation 
-PIP is needed 
-Create an empty virtual environment 
-Activate the virtual environment 
-Move into the project path 
-Run the following command 
+<p>Note: PIP is needed</p> 
+1. Create an empty virtual environment 
+2. Activate the virtual environment 
+3. Move into the project path 
+4. Run the following command 
 
 `pip3 install -r requirements.txt --upgrade`
 
