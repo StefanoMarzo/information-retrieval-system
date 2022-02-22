@@ -1,17 +1,17 @@
 # InformationRetrievalSystem
 
 ## Installation 
-<p>Note: PIP is needed</p> 
-1. Create an empty virtual environment  
-2. Activate the virtual environment  
-3. Move into the project path  
-4. Run the following command  
+Note: PIP is needed  
+Create an empty virtual environment  
+Activate the virtual environment  
+Move into the project path  
+Run the following command  
 
 `pip3 install -r requirements.txt --upgrade`
 
 ## Setup 
-Make sure to have topics in ./topics/  
-Make sure to have collection in ./COLLECTION/  
+Make sure to have topics in `./topics/`  
+Make sure to have collection in `./COLLECTION/`  
 Folder 'model_structures' is not necessary  
 Note: computing the structures takes long time  
 
@@ -30,8 +30,38 @@ python -m spacy download en-core-web-sm
 ```
 
 ## Output
-You can find the OUTPUTS in ./IR_output/  
+You can find the OUTPUTS in `./IR_output/`  
 Output is divided in sub folders for each model  
 We can run trec_eval directly from an output file  
+
+## Project structure
+```
+COLLECTION/
+  all xml documents here
+  
+topics/
+  all xml queries here
+  
+model_structures/
+  all structures files here
+  
+IR_output/
+  VSM/
+    VSM.out
+    
+  BM25/
+    BM25.out
+    
+  BM25F/
+    BM25F.out
+    
+  ULM/
+    ULM.out
+    
+IR Multiple Language Model.py
+IR Multiple Language Model.ipynb
+stopwords.txt
+requirements.txt
+```
 
 ### Thanks 
