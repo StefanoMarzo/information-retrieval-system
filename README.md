@@ -29,8 +29,8 @@ python -m spacy download en-core-web-sm
 ```
 
 ## Understanding the program
-The best way to understand the program is to check the NoteBook `IR Multiple Language Model.ipynb`,   
-it contains the same progrm and produces the same output, but it also presents explanations.
+The best way to understand the program is to check the NoteBook `IR Multiple Language Model.ipynb`  
+it contains the same program and produces the same output, but it also presents explanations.
 
 ## Output
 You can find the OUTPUTS in `./IR_output/`  
