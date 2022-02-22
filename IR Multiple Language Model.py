@@ -8,7 +8,7 @@ import pickle #serialize object read/write files
 import time
 
 #path to the document collection
-collection_path = '/COLLECTION'
+collection_path = 'COLLECTION/'
 
 def getDocumentList(path):
     return os.listdir(path)
@@ -16,7 +16,7 @@ def getDocumentList(path):
 #generate document name list
 doc_list = getDocumentList(collection_path)
 
-queries_path = '/topics'
+queries_path = 'topics/'
 
 #generate query name list
 queries_list = getDocumentList(queries_path)
