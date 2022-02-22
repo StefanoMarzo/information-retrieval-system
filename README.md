@@ -12,8 +12,7 @@ Run the following command
 ## Setup 
 Make sure to have topics in `./topics/`  
 Make sure to have collection in `./COLLECTION/`  
-Folder 'model_structures' is not necessary  
-Note: computing the structures takes long time  
+Folder `model_structures` is not necessary, but computing the structures takes long time (up to 2000s)
 
 ## Run the program 
 
