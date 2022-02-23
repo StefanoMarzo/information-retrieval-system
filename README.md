@@ -30,7 +30,9 @@ python -m spacy download en-core-web-sm
 
 ## Understanding the program
 The best way to understand the program is to check the NoteBook `IR Multiple Language Model.ipynb`  
-it contains the same program and produces the same output, but it also presents explanations.
+it contains the same program and produces the same output, but it also presents explanations.  
+Note: you can check the UML diagram of classes:
+![alt text](https://github.com/StefanoMarzo/InformationRetrievalSystem/blob/main/uml.jpg?raw=true)
 
 ## Output
 You can find the OUTPUTS in `./IR_output/`  
@@ -67,4 +69,4 @@ stopwords.txt
 requirements.txt
 ```
 
-### Thanks 
+### Thank you
