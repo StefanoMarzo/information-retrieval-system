@@ -1,3 +1,4 @@
+
 #imports
 import xml.etree.ElementTree as ET
 import os
@@ -6,6 +7,9 @@ import numpy as np
 import spacy #lemmatization
 import pickle #serialize object read/write files
 import time
+
+
+#Load document collection
 
 #path to the document collection
 collection_path = 'COLLECTION/'
@@ -16,11 +20,15 @@ def getDocumentList(path):
 #generate document name list
 doc_list = getDocumentList(collection_path)
 
+
+# Load queries
 queries_path = 'topics/'
 
 #generate query name list
 queries_list = getDocumentList(queries_path)
 
+
+#Utilities
 def divideList(list_in, percentage, seed):
     if percentage < 0 or percentage > 1:
         print('Percentage must be between 0 and 1')
@@ -32,6 +40,8 @@ def divideList(list_in, percentage, seed):
     i = round(len(list_in) * percentage)
     return list_in[0:i]
 
+
+#Processing text
 #Load a stopword list NLTK
 gist_file = open("stopwords.txt", "r")
 try:
@@ -40,6 +50,8 @@ try:
 finally:
     gist_file.close()
 
+
+# Text Processing Function
 #Process text to meet the IR requirements
 use_lemmatization = True
 
@@ -47,11 +59,12 @@ use_lemmatization = True
 # https://www.analyticsvidhya.com/blog/2019/08
 #/how-to-remove-stopwords-text-normalization-nltk-spacy-gensim-python
 #/?utm_source=blog&utm_medium=information-retrieval-using-word2vec-based-vector-space-model
-nlp = spacy.load('en_core_web_sm', disable=['ner', 'parser'])
+nlp = spacy.load('en_core_web_sm',disable=['ner','parser'])
 nlp.max_length=5000000
 
 def lemmatize(x):
     return ' '.join([token.lemma_ for token in list(nlp(x)) if (token.is_stop==False)])
+    
     
 #Returns a list of relevant terms
 def processText(text):
@@ -69,6 +82,9 @@ def processText(text):
     if use_lemmatization:
         text = lemmatize(text)
     return list(filter(lambda el: el not in stopwords, text.split()))
+
+
+#Class for XML documents
 
 class XmlFile:
     def __init__(self, xml, xml_id, field_dict, processText):
@@ -96,9 +112,7 @@ class XmlFile:
         #for term in tf_index.keys():
             #tf_index[term] = tf_index[term] / max_term_count
         return tf_index
-    
-    def getWeightedTf(self, term, weight_list):
-        return 0
+
 
 #relevant document tags 
 xml_doc_id = 'DOCID'
@@ -111,18 +125,9 @@ class XmlDoc(XmlFile):
         self.tf_head = self.__getTF__(self.processed_head)
         self.tf_body = self.__getTF__(self.processed_body)
         self.tf_text = self.__getTF__(self.processed_head + self.processed_body)
-    
-    def getWeightedTf(self, term, w_head=1, w_body=1):
-        try:
-            tf_body = self.tf_body[term] * w_body
-        except:
-            tf_body = 0
-        try:
-            tf_head = self.tf_head[term] * w_head
-        except:
-            tf_head = 0
-        return tf_body + tf_head
 
+
+#Document Collection
 class DocumentCollection:
     def __init__(self, path, doc_list, 
                  model_structure_file_path = 'model_structures/'
@@ -218,27 +223,9 @@ class DocumentCollection:
             return self.docs[document_id].tf_text[term] * self.idf[term]
         except: 
             return 0
-        
-    
-    def getRelevanceBody(self, document_id, term):
-        try:
-            return self.docs[document_id].tf_body[term] * self.idf[term]
-        except: 
-            return 0
-        
-    def getRelevanceHead(self, document_id, term):
-        try:
-            return self.docs[document_id].tf_headline[term] * self.idf[term]
-        except: 
-            return 0
-        
-    def getWeightedRelevance(self, document_id, term, w_head=1, w_body=1):
-        try:
-            return self.docs[document_id].getWeightedTf(term, w_head, w_body) * self.idf[term]
-        except:
-            return 0
 
 
+#Classes for handle XML queries
 #relevant query tags 
 xml_query_id = 'QUERYID'
 xml_query_fields = {'TITLE' : 'processed_text'}
@@ -246,9 +233,9 @@ xml_query_fields = {'TITLE' : 'processed_text'}
 class XmlQuery(XmlFile):
     def __init__(self, xml):
         super().__init__(xml, xml_query_id, xml_query_fields, processText)
-        #self.tf_index = self.__getTF__(self.processed_text)
 
 
+#Query collection
 class QueryCollection:
     def __init__(self, path, query_list, filename='model_structures/query-collection.dictionary'):
         #List of XmlQuery object
@@ -292,13 +279,12 @@ else:
 compute_query_collection = True or recompute_all
 query_collection_filename = 'model_structures/query-collection.dictionary'
 
-#create a Query collection object
 start = time.time()
 query_collection = QueryCollection(queries_path, queries_list, query_collection_filename)
 end = time.time()
 print('Query Collection Computed in ' + str(round(end - start, 4)) + 's')
 
-
+#Classes for ranking
 class RankResult:
     def __init__(self, q_id, d_id, relevance):
         self.q_id = q_id
@@ -382,6 +368,7 @@ class VectorSpaceModel(RankingModel):
         return similarity_function(v_doc, v_query)
 
 
+#Generate the VSM report for trec_eval
 vsm = VectorSpaceModel(document_collection, query_collection)
 vsm.getReport(out_folder = 'VSM/', limit_result = 1000, model_name='VSM')
 
@@ -411,11 +398,13 @@ class BM25(VectorSpaceModel):
         normalizer = 1 - self.b + (self.b * doc_len / self.document_collection.avgdl)
         return (self.k + 1) * x / (x + self.k * normalizer) * idf_term
 
+
+#Generate the BM25 report for trec_eval
 bm25 = BM25(document_collection, query_collection)
 bm25.getReport(out_folder = 'BM25/', limit_result = 1000, model_name='BM25')
 
 
-# BM25F
+#BM25F
 class BM25F(VectorSpaceModel):
     def __init__(self, document_collection, query_collection, k=1.2, b=.75, track_id='-', run_id='BM25F',
                 w_head=3, w_body=1):
@@ -439,13 +428,13 @@ class BM25F(VectorSpaceModel):
         return (self.k + 1) * x / (x + self.k * normalizer) * idf_term
     
 
+
+#Generate the BM25F report for trec_eval
 bm25f = BM25F(document_collection, query_collection, w_head=3, w_body=1)
 bm25f.getReport(out_folder = 'BM25F/', limit_result = 1000, model_name='BM25F')
 
 
-# Unigram Language Model
-
-
+#Unigram Language Model
 class UnigramLanguageModel(RankingModel):
     def __init__(self, document_collection, query_collection, track_id='-', run_id='ULM'):
         super().__init__(document_collection, query_collection, track_id, run_id)
@@ -464,5 +453,7 @@ class UnigramLanguageModel(RankingModel):
         return relevance
 
 
+#Generate the ULM report for trec_eval
 ulm = UnigramLanguageModel(document_collection, query_collection)
 ulm.getReport(out_folder = 'ULM/', limit_result = 1000, model_name='ULM')
+
