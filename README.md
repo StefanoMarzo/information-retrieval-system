@@ -25,7 +25,7 @@ run the following
 pip install numpy
 pip install -U pip setuptools wheel
 pip install -U spacy
-python -m spacy download en-core-web-sm
+python -m spacy download en_core_web_sm
 ```
 
 ## Understanding the program
